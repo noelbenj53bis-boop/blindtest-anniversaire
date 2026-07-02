@@ -556,15 +556,15 @@
         </div>
       </div>
 
-      <!-- YouTube section -->
+      <!-- Audio MP3 section -->
       <div class="section" id="h-youtube-section" style="display:none">
-        <div class="section-title">Audio YouTube</div>
+        <div class="section-title">Audio</div>
         <div class="yt-section">
-          <div id="yt-player"></div>
+          <audio id="mp3-player" controls style="width:100%;margin-bottom:10px;filter:invert(1) hue-rotate(90deg)"></audio>
           <div class="yt-controls">
-            <button class="ctrl-btn primary" onclick="ytPlay()" style="min-width:0;flex:none;padding:10px 18px">▶ Lecture</button>
-            <button class="ctrl-btn" onclick="ytPause()" style="min-width:0;flex:none;padding:10px 18px">⏸ Pause</button>
-            <div class="yt-id-note" id="h-yt-note">ID : —</div>
+            <button class="ctrl-btn primary" onclick="mp3Play()" style="min-width:0;flex:none;padding:10px 18px">▶ Lecture</button>
+            <button class="ctrl-btn" onclick="mp3Pause()" style="min-width:0;flex:none;padding:10px 18px">⏸ Pause</button>
+            <div class="yt-id-note" id="h-yt-note">Fichier : —</div>
           </div>
         </div>
       </div>
@@ -672,13 +672,6 @@
 </div>
 
 <!-- ═══ SCRIPTS ═══ -->
-<!-- YouTube IFrame API (chargé de façon asynchrone) -->
-<script>
-  var tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/iframe_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-</script>
 
 <!-- QRCode.js -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -706,148 +699,147 @@ const QUESTIONS = [
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
     cardImageUrl:'https://images.pokemontcg.io/base1/4_hires.png',
     cardDisplayName:'Dracaufeu Holo Rare — Set de Base',
-    choices:['50–100€','150–250€','350–500€','1 000–2 000€'], correctIndex:2, timer:45 },
+    choices:['50–100€','200–300€','350–500€','800–1 200€'], correctIndex:2, timer:45 },
 
   { id:1, theme:'POKÉMON', themeIcon:'🃏', themeColor:'#FFCC00', themeText:'#111',
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
-    cardImageUrl:'https://images.pokemontcg.io/swsh12pt5/215_hires.png',
-    cardDisplayName:'Noctali VMAX — Zénith Suprême (Alt Art)',
-    choices:['30–60€','80–150€','200–300€','500–800€'], correctIndex:2, timer:45 },
+    cardImageUrl:'https://images.pokemontcg.io/swsh7/215_hires.png',
+    cardDisplayName:'Noctali VMAX Alt Art — Évolutions Célestes',
+    choices:['200–400€','500–800€','1 200–1 500€','3 000–5 000€'], correctIndex:2, timer:45 },
 
   { id:2, theme:'POKÉMON', themeIcon:'🃏', themeColor:'#FFCC00', themeText:'#111',
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
-    cardImageUrl:'https://images.pokemontcg.io/swsh7/218_hires.png',
-    cardDisplayName:'Rayquaza VMAX — Ciel Rugissant (Alt Art)',
-    choices:['30–60€','100–180€','250–350€','500–700€'], correctIndex:1, timer:45 },
+    cardImageUrl:'https://images.pokemontcg.io/sv3/223_hires.png',
+    cardDisplayName:'Dracaufeu ex Special Illustration Rare — Flammes Obsidiennes',
+    choices:['20–50€','100–150€','200–400€','600–900€'], correctIndex:2, timer:45 },
 
   { id:3, theme:'POKÉMON', themeIcon:'🃏', themeColor:'#FFCC00', themeText:'#111',
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
-    cardImageUrl:'https://images.pokemontcg.io/swsh12/186_hires.png',
-    cardDisplayName:'Lugia V — Tempête Argentée (Alt Art)',
-    choices:['10–25€','40–80€','100–180€','300–500€'], correctIndex:2, timer:45 },
+    cardImageUrl:'https://images.pokemontcg.io/swsh7/218_hires.png',
+    cardDisplayName:'Rayquaza VMAX Alt Art — Ciel Rugissant',
+    choices:['30–60€','100–180€','250–400€','600–900€'], correctIndex:2, timer:45 },
 
   { id:4, theme:'POKÉMON', themeIcon:'🃏', themeColor:'#FFCC00', themeText:'#111',
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
-    cardImageUrl:'https://images.pokemontcg.io/base1/2_hires.png',
-    cardDisplayName:'Tortank Holo Rare — Set de Base',
-    choices:['20–40€','70–130€','200–300€','500–700€'], correctIndex:1, timer:45 },
+    cardImageUrl:'https://images.pokemontcg.io/sv8pt5/161_hires.png',
+    cardDisplayName:'Noctali ex Special Illustration Rare — Évolutions Prismatiques',
+    choices:['100–200€','300–500€','800–900€','1 500–2 000€'], correctIndex:2, timer:45 },
 
   { id:5, theme:'POKÉMON', themeIcon:'🃏', themeColor:'#FFCC00', themeText:'#111',
     type:'pokemon', question:'Combien vaut cette carte en moyenne sur le marché ?',
-    cardImageUrl:'https://images.pokemontcg.io/sv3pt5/207_hires.png',
-    cardDisplayName:'Dracaufeu ex — Pokémon 151 (Alt Art)',
-    choices:['10–25€','40–80€','150–250€','400–600€'], correctIndex:1, timer:45 },
-
+    cardImageUrl:'https://images.pokemontcg.io/neo1/9_hires.png',
+    cardDisplayName:'Lugia Holo Rare 1ère Édition — Neo Genesis',
+    choices:['500–1 000€','2 000–5 000€','10 000–20 000€','30 000–50 000€'], correctIndex:3, timer:45 },
   // ── VALORANT ─ 3 questions ─ 30s ──
   { id:6, theme:'VALORANT', themeIcon:'⚔️', themeColor:'#FF4655', themeText:'#fff',
-    type:'youtube', question:'Quel agent VALORANT est associé à ce thème musical ?',
-    youtubeId:'srnoYIvSws0',
+    type:'audio', question:'Quel agent VALORANT est associé à ce thème musical ?',
+    audioFile:'val1.mp3',
     choices:['Jett','Phoenix','Reyna','Neon'], correctIndex:1, timer:30 },
 
   { id:7, theme:'VALORANT', themeIcon:'⚔️', themeColor:'#FF4655', themeText:'#fff',
-    type:'youtube', question:'Quel agent VALORANT possède ce trailer musical ?',
-    youtubeId:'REMPLACER_VAL2',
+    type:'audio', question:'Quel agent VALORANT possède ce trailer musical ?',
+    audioFile:'val2.mp3',
     choices:['Chamber','Killjoy','Sage','Cypher'], correctIndex:1, timer:30 },
 
   { id:8, theme:'VALORANT', themeIcon:'⚔️', themeColor:'#FF4655', themeText:'#fff',
-    type:'youtube', question:'De quelle map VALORANT provient ce thème d\'ambiance ?',
-    youtubeId:'REMPLACER_VAL3',
+    type:'audio', question:'De quelle map VALORANT provient ce thème d\'ambiance ?',
+    audioFile:'val3.mp3',
     choices:['Ascent','Haven','Bind','Pearl'], correctIndex:0, timer:30 },
 
   // ── APEX LEGENDS ─ 3 questions ─ 30s ──
   { id:9, theme:'APEX LEGENDS', themeIcon:'🎯', themeColor:'#CF0A0A', themeText:'#fff',
-    type:'youtube', question:'Quel est le thème de cette légende Apex ?',
-    youtubeId:'REMPLACER_APEX1',
+    type:'audio', question:'Quel est le thème de cette légende Apex ?',
+    audioFile:'apex1.mp3',
     choices:['Wraith','Pathfinder','Octane','Bloodhound'], correctIndex:0, timer:30 },
 
   { id:10, theme:'APEX LEGENDS', themeIcon:'🎯', themeColor:'#CF0A0A', themeText:'#fff',
-    type:'youtube', question:'De quelle saison d\'Apex Legends vient ce thème ?',
-    youtubeId:'REMPLACER_APEX2',
+    type:'audio', question:'De quelle saison d\'Apex Legends vient ce thème ?',
+    audioFile:'apex2.mp3',
     choices:['Saison 1','Saison 5','Saison 10','Saison 15'], correctIndex:2, timer:30 },
 
   { id:11, theme:'APEX LEGENDS', themeIcon:'🎯', themeColor:'#CF0A0A', themeText:'#fff',
-    type:'youtube', question:'Quel est le thème de cette légende Apex ?',
-    youtubeId:'REMPLACER_APEX3',
+    type:'audio', question:'Quel est le thème de cette légende Apex ?',
+    audioFile:'apex3.mp3',
     choices:['Loba','Valkyrie','Horizon','Newcastle'], correctIndex:2, timer:30 },
 
   // ── LEAGUE OF LEGENDS ─ 3 questions ─ 30s ──
   { id:12, theme:'LEAGUE OF LEGENDS', themeIcon:'⚡', themeColor:'#0BBCD4', themeText:'#fff',
-    type:'youtube', question:'Quel champion League of Legends possède ce thème ?',
-    youtubeId:'REMPLACER_LOL1',
+    type:'audio', question:'Quel champion League of Legends possède ce thème ?',
+    audioFile:'lol1.mp3',
     choices:['Jinx','Ahri','Yasuo','Vi'], correctIndex:0, timer:30 },
 
   { id:13, theme:'LEAGUE OF LEGENDS', themeIcon:'⚡', themeColor:'#0BBCD4', themeText:'#fff',
-    type:'youtube', question:'Quel est ce titre musical des Worlds ?',
-    youtubeId:'REMPLACER_LOL2',
+    type:'audio', question:'Quel est ce titre musical des Worlds ?',
+    audioFile:'lol2.mp3',
     choices:['Warriors (2014)','Rise (2018)','Phoenix (2019)','GODS (2023)'], correctIndex:0, timer:30 },
 
   { id:14, theme:'LEAGUE OF LEGENDS', themeIcon:'⚡', themeColor:'#0BBCD4', themeText:'#fff',
-    type:'youtube', question:'Quel champion League of Legends possède ce thème ?',
-    youtubeId:'REMPLACER_LOL3',
+    type:'audio', question:'Quel champion League of Legends possède ce thème ?',
+    audioFile:'lol3.mp3',
     choices:['Lux','Ekko','Akali','Senna'], correctIndex:2, timer:30 },
 
   // ── BRAWLHALLA ─ 3 questions ─ 30s ──
   { id:15, theme:'BRAWLHALLA', themeIcon:'🪓', themeColor:'#3B82F6', themeText:'#fff',
-    type:'youtube', question:'Quel est le thème de cette légende Brawlhalla ?',
-    youtubeId:'REMPLACER_BH1',
+    type:'audio', question:'Quel est le thème de cette légende Brawlhalla ?',
+    audioFile:'bh1.mp3',
     choices:['Bodvar','Mordex','Val','Koji'], correctIndex:0, timer:30 },
 
   { id:16, theme:'BRAWLHALLA', themeIcon:'🪓', themeColor:'#3B82F6', themeText:'#fff',
-    type:'youtube', question:'Quel est le thème de cette légende Brawlhalla ?',
-    youtubeId:'REMPLACER_BH2',
+    type:'audio', question:'Quel est le thème de cette légende Brawlhalla ?',
+    audioFile:'bh2.mp3',
     choices:['Rayman','Cassidy','Isaiah','Artemis'], correctIndex:0, timer:30 },
 
   { id:17, theme:'BRAWLHALLA', themeIcon:'🪓', themeColor:'#3B82F6', themeText:'#fff',
-    type:'youtube', question:'De quel mode de jeu Brawlhalla vient cette musique ?',
-    youtubeId:'REMPLACER_BH3',
+    type:'audio', question:'De quel mode de jeu Brawlhalla vient cette musique ?',
+    audioFile:'bh3.mp3',
     choices:['Brawlball','Kung Foot','Bombsketball','Horde'], correctIndex:1, timer:30 },
 
   // ── CLASH OF CLANS ─ 3 questions ─ 30s ──
   { id:18, theme:'CLASH OF CLANS', themeIcon:'🏰', themeColor:'#F59E0B', themeText:'#111',
-    type:'youtube', question:'Quel est ce thème musical de Clash of Clans ?',
-    youtubeId:'REMPLACER_COC1',
+    type:'audio', question:'Quel est ce thème musical de Clash of Clans ?',
+    audioFile:'coc1.mp3',
     choices:['Thème principal','Village du Constructeur','Capital de Clan','Mode Guerre'], correctIndex:0, timer:30 },
 
   { id:19, theme:'CLASH OF CLANS', themeIcon:'🏰', themeColor:'#F59E0B', themeText:'#111',
-    type:'youtube', question:'Quel Héros CoC est associé à ce thème ?',
-    youtubeId:'REMPLACER_COC2',
+    type:'audio', question:'Quel Héros CoC est associé à ce thème ?',
+    audioFile:'coc2.mp3',
     choices:['Roi Barbare','Reine Archer','Grand Gardien','Maître des Forges'], correctIndex:1, timer:30 },
 
   { id:20, theme:'CLASH OF CLANS', themeIcon:'🏰', themeColor:'#F59E0B', themeText:'#111',
-    type:'youtube', question:'De quel village CoC provient cette musique d\'ambiance ?',
-    youtubeId:'REMPLACER_COC3',
+    type:'audio', question:'De quel village CoC provient cette musique d\'ambiance ?',
+    audioFile:'coc3.mp3',
     choices:['Village Principal','Village Constructeur','Capital de Clan','Village de Nuit'], correctIndex:1, timer:30 },
 
   // ── CLASH ROYALE ─ 3 questions ─ 30s ──
   { id:21, theme:'CLASH ROYALE', themeIcon:'👑', themeColor:'#7C3AED', themeText:'#fff',
-    type:'youtube', question:'Quel est ce thème musical de Clash Royale ?',
-    youtubeId:'REMPLACER_CR1',
+    type:'audio', question:'Quel est ce thème musical de Clash Royale ?',
+    audioFile:'cr1.mp3',
     choices:['Menu principal','Arène Légendaire','Village d\'Entraînement','Tournoi'], correctIndex:0, timer:30 },
 
   { id:22, theme:'CLASH ROYALE', themeIcon:'👑', themeColor:'#7C3AED', themeText:'#fff',
-    type:'youtube', question:'De quelle arène Clash Royale provient cette musique ?',
-    youtubeId:'REMPLACER_CR2',
+    type:'audio', question:'De quelle arène Clash Royale provient cette musique ?',
+    audioFile:'cr2.mp3',
     choices:['Arène 1 — Gobelins','Arène 5 — Jungle','Arène 10 — Forteresse','Arène Légendaire'], correctIndex:3, timer:30 },
 
   { id:23, theme:'CLASH ROYALE', themeIcon:'👑', themeColor:'#7C3AED', themeText:'#fff',
-    type:'youtube', question:'Quel mode de jeu Clash Royale correspond à ce thème ?',
-    youtubeId:'REMPLACER_CR3',
+    type:'audio', question:'Quel mode de jeu Clash Royale correspond à ce thème ?',
+    audioFile:'cr3.mp3',
     choices:['2v2','Mode Draft','Défi Classique','Global Tournament'], correctIndex:0, timer:30 },
 
   // ── BRAWL STARS ─ 3 questions ─ 30s ──
   { id:24, theme:'BRAWL STARS', themeIcon:'⭐', themeColor:'#EC4899', themeText:'#fff',
-    type:'youtube', question:'Quel Brawler possède ce thème musical ?',
-    youtubeId:'REMPLACER_BS1',
+    type:'audio', question:'Quel Brawler possède ce thème musical ?',
+    audioFile:'bs1.mp3',
     choices:['El Primo','Shelly','Spike','Crow'], correctIndex:2, timer:30 },
 
   { id:25, theme:'BRAWL STARS', themeIcon:'⭐', themeColor:'#EC4899', themeText:'#fff',
-    type:'youtube', question:'Quel mode de jeu Brawl Stars correspond à cette musique ?',
-    youtubeId:'REMPLACER_BS2',
+    type:'audio', question:'Quel mode de jeu Brawl Stars correspond à cette musique ?',
+    audioFile:'bs2.mp3',
     choices:['Gem Grab','Brawl Ball','Showdown','Bounty'], correctIndex:1, timer:30 },
 
   { id:26, theme:'BRAWL STARS', themeIcon:'⭐', themeColor:'#EC4899', themeText:'#fff',
-    type:'youtube', question:'Quel est le thème de ce Brawler légendaire ?',
-    youtubeId:'REMPLACER_BS3',
+    type:'audio', question:'Quel est le thème de ce Brawler légendaire ?',
+    audioFile:'bs3.mp3',
     choices:['Leon','Sandy','Amber','Surge'], correctIndex:0, timer:30 }
 ];
 
@@ -880,42 +872,38 @@ let currentTimerEnd = 0;
 let currentTimerDuration = 30;
 let currentScoreboardCheckpoint = 0;
 let hostTimerInterval = null;
-let ytPlayer = null;
-let ytReady = false;
+// Audio MP3 géré via mp3Player (élément HTML audio)
 let answersListener = null;
 let totalPlayers = 0;
 
 // ═══════════════════════════════════════════════════════════
-// YOUTUBE API
+// AUDIO MP3
 // ═══════════════════════════════════════════════════════════
-function onYouTubeIframeAPIReady() {
-  ytPlayer = new YT.Player('yt-player', {
-    width: '280',
-    height: '158',
-    playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1 },
-    events: {
-      onReady: () => { ytReady = true; }
-    }
-  });
-}
+const mp3Player = document.getElementById('mp3-player');
 
-function ytPlay()   { if (ytReady && ytPlayer) ytPlayer.playVideo(); }
-function ytPause()  { if (ytReady && ytPlayer) ytPlayer.pauseVideo(); }
+function mp3Play()  { if (mp3Player) mp3Player.play(); }
+function mp3Pause() { if (mp3Player) mp3Player.pause(); }
 
-function ytLoadAndPlay(videoId) {
-  if (!ytReady || !ytPlayer) return;
-  if (!videoId || videoId.startsWith('REMPLACER')) {
+function mp3LoadAndPlay(audioFile) {
+  if (!audioFile) return;
+  const url = 'sounds/' + audioFile;
+  mp3Player.src = url;
+  mp3Player.load();
+  mp3Player.play().catch(() => {
     document.getElementById('h-yt-note').innerHTML =
-      '⚠️ ID YouTube non configuré : <strong>' + videoId + '</strong><br>' +
-      'Remplacez-le dans QUESTIONS[' + currentQIndex + '].youtubeId';
-    return;
-  }
-  ytPlayer.loadVideoById({ videoId, startSeconds: 0 });
-  document.getElementById('h-yt-note').innerHTML =
-    'ID : <a href="https://youtube.com/watch?v=' + videoId + '" target="_blank">' + videoId + '</a>';
+      '⚠️ Fichier introuvable : <strong>' + audioFile + '</strong><br>Vérifiez le dossier sounds/';
+  });
+  document.getElementById('h-yt-note').innerHTML = '🎵 ' + audioFile;
 }
 
-function ytStop() { if (ytReady && ytPlayer) ytPlayer.stopVideo(); }
+function mp3Stop() {
+  if (mp3Player) { mp3Player.pause(); mp3Player.currentTime = 0; }
+}
+
+// Alias pour compatibilité avec le reste du code
+function ytPlay()  { mp3Play(); }
+function ytPause() { mp3Pause(); }
+function ytStop()  { mp3Stop(); }
 
 // ═══════════════════════════════════════════════════════════
 // QR CODE INIT
@@ -996,7 +984,7 @@ function renderHostQuestion(q, revealed) {
   } else {
     document.getElementById('h-pokemon-section').style.display = 'none';
     document.getElementById('h-youtube-section').style.display = 'block';
-    if (!revealed) ytLoadAndPlay(q.youtubeId);
+    if (!revealed) mp3LoadAndPlay(q.audioFile);
   }
 
   // Choices
@@ -1102,8 +1090,8 @@ async function replayQuestion() {
   startHostTimer(q.timer);
   updateTimerRing(q.timer, q.timer);
 
-  if (q.type === 'youtube') {
-    ytLoadAndPlay(q.youtubeId);
+  if (q.type === 'audio') {
+    mp3LoadAndPlay(q.audioFile);
   }
 }
 
