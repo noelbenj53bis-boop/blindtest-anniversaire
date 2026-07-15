@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Avis — Jadou 18</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a; --panel:#121712; --line:#2a2f22;
+    --neon:#ccff00; --gold:#e8c15a; --text:#eef2e6; --muted:#8a9080; --danger:#ff5a5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #182310 0%, var(--bg) 55%), var(--bg);
+    color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; padding:24px 16px 60px;
+  }
+  h1,h2{font-family:'Orbitron',sans-serif;margin:0;}
+  .wrap{max-width:640px;margin:0 auto;}
+  header{border-bottom:2px solid var(--neon);padding-bottom:14px;margin-bottom:24px;}
+  header .brand{font-size:clamp(22px,5vw,30px);letter-spacing:1px;color:var(--neon);text-shadow:0 0 18px rgba(204,255,0,0.35);}
+  header .sub{color:var(--muted);font-size:14px;margin-top:6px;}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px;margin-bottom:18px;}
+  label.field-label{display:block;font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+
+  input[type=text]{
+    width:100%;background:#0e120c;border:1px solid var(--line);color:var(--text);
+    padding:12px 14px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-size:16px;margin-bottom:18px;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--neon);}
+
+  .rating-row{margin-bottom:20px;}
+  .rating-row .q-label{font-size:16px;font-weight:600;margin-bottom:8px;}
+  .stars{display:flex;gap:6px;}
+  .star{
+    font-size:32px;cursor:pointer;color:#4a6318;transition:color .1s, transform .1s;
+    user-select:none;
+  }
+  .star:hover{transform:scale(1.15);}
+  .star.filled{color:var(--neon);text-shadow:0 0 10px rgba(204,255,0,0.6);}
+
+  textarea{
+    width:100%;min-height:160px;background:#0e120c;border:1px solid var(--line);color:var(--text);
+    padding:14px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-size:16px;resize:vertical;
+    margin-bottom:6px;
+  }
+  textarea:focus{outline:none;border-color:var(--neon);}
+  .char-count{font-size:12px;color:var(--muted);text-align:right;margin-bottom:18px;}
+
+  button{
+    font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    border:none;border-radius:4px;padding:14px 20px;cursor:pointer;font-size:15px;width:100%;
+  }
+  .btn-submit{background:var(--neon);color:#0a0a0a;}
+  .btn-submit:hover{background:#d9ff33;}
+  .btn-submit:disabled{background:#3a3f30;color:var(--muted);cursor:not-allowed;}
+
+  .thanks{text-align:center;padding:50px 20px;}
+  .thanks .big-icon{font-size:48px;margin-bottom:14px;}
+  .thanks h2{color:var(--neon);text-shadow:0 0 16px rgba(204,255,0,0.4);margin-bottom:10px;}
+  .thanks p{color:var(--muted);font-size:15px;}
+
+  /* Admin results view */
+  .pin-gate{max-width:340px;margin:80px auto;text-align:center;}
+  .pin-gate input{text-align:center;font-size:22px;letter-spacing:6px;}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .summary-card{background:#0e120c;border:1px solid var(--line);border-radius:6px;padding:14px;text-align:center;}
+  .summary-card .val{font-family:'Orbitron',sans-serif;font-size:26px;color:var(--neon);}
+  .summary-card .lbl{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+  .response-card{background:#0e120c;border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:12px;}
+  .response-card .rname{font-weight:700;color:var(--neon);margin-bottom:4px;}
+  .response-card .rstars{font-size:13px;color:var(--muted);margin-bottom:8px;}
+  .response-card .rcomment{font-size:15px;line-height:1.5;white-space:pre-wrap;}
+  .response-card .rdate{font-size:11px;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">📋 AVIS — JADOU 18</div>
+    <div class="sub" id="headerSub">Ton avis compte — littéralement, on va le relire plusieurs fois.</div>
+  </header>
+
+  <!-- FORMULAIRE -->
+  <div id="formView">
+    <div class="panel">
+      <label class="field-label" for="nameInput">Ton prénom (facultatif)</label>
+      <input type="text" id="nameInput" placeholder="Anonyme, si tu préfères">
+
+      <div class="rating-row">
+        <div class="q-label">🎉 Ambiance générale</div>
+        <div class="stars" data-key="ambiance"></div>
+      </div>
+      <div class="rating-row">
+        <div class="q-label">🎯 Les Défis</div>
+        <div class="stars" data-key="defis"></div>
+      </div>
+      <div class="rating-row">
+        <div class="q-label">🗓️ Organisation générale</div>
+        <div class="stars" data-key="organisation"></div>
+      </div>
+
+      <label class="field-label" for="commentInput">Un commentaire, une anecdote, une suggestion ?</label>
+      <textarea id="commentInput" placeholder="Vas-y, lâche-toi. Pas de limite basse — on a un pari en cours sur qui dépassera les 300 caractères."></textarea>
+      <div class="char-count" id="charCount">0 caractère</div>
+
+      <button class="btn-submit" id="submitBtn">Envoyer mon avis</button>
+    </div>
+  </div>
+
+  <!-- MERCI -->
+  <div id="thanksView" class="thanks" style="display:none;">
+    <div class="big-icon">✅</div>
+    <h2>Merci !</h2>
+    <p>Ton avis est bien enregistré. À bientôt pour la prochaine !</p>
+  </div>
+
+  <!-- ACCÈS RÉSULTATS (protégé) -->
+  <div id="pinGate" class="pin-gate" style="display:none;">
+    <div class="panel">
+      <label class="field-label" for="pinInput">Code d'accès</label>
+      <input type="text" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="4">
+      <button class="btn-submit" id="pinBtn" style="margin-top:14px;">Voir les résultats</button>
+      <div id="pinError" style="color:var(--danger);font-size:13px;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- RÉSULTATS -->
+  <div id="resultsView" style="display:none;">
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div id="responsesList"></div>
+  </div>
+
+</div>
+
+<script>
+// ---------- Firebase (branche dédiée "satisfactionJadou18") ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyBDjMGInt3PNL7SNlfFG_-cjahJW66_i1A",
+  authDomain: "blindtest-anniversaire.firebaseapp.com",
+  databaseURL: "https://blindtest-anniversaire-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "blindtest-anniversaire",
+  storageBucket: "blindtest-anniversaire.firebasestorage.app",
+  messagingSenderId: "164642303775",
+  appId: "1:164642303775:web:ba51b309d28675fb8f8a2a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ROOT = "satisfactionJadou18";
+const refResponses = db.ref(`${ROOT}/responses`);
+
+// ⚠️ Code d'accès aux résultats — à changer ici si tu veux, c'est la seule ligne à modifier.
+const ADMIN_PIN = "1234";
+
+const RATING_KEYS = ["ambiance","defis","organisation"];
+const RATING_LABELS = {ambiance:"Ambiance", defis:"Défis", organisation:"Organisation"};
+let ratings = {ambiance:0, defis:0, organisation:0};
+
+// ---------- Étoiles ----------
+document.querySelectorAll('.stars').forEach(starsBox=>{
+  const key = starsBox.dataset.key;
+  for(let i=1;i<=5;i++){
+    const s = document.createElement('span');
+    s.className = 'star';
+    s.textContent = '★';
+    s.dataset.value = i;
+    s.onclick = ()=>{
+      ratings[key] = i;
+      renderStars(starsBox, i);
+    };
+    starsBox.appendChild(s);
+  }
+});
+function renderStars(box, value){
+  box.querySelectorAll('.star').forEach(s=>{
+    s.classList.toggle('filled', parseInt(s.dataset.value) <= value);
+  });
+}
+
+// ---------- Compteur de caractères ----------
+const commentInput = document.getElementById('commentInput');
+commentInput.addEventListener('input', ()=>{
+  document.getElementById('charCount').textContent = commentInput.value.length + ' caractère' + (commentInput.value.length>1?'s':'');
+});
+
+// ---------- Envoi ----------
+document.getElementById('submitBtn').onclick = async ()=>{
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
+
+  const name = document.getElementById('nameInput').value.trim() || 'Anonyme';
+  const comment = commentInput.value.trim();
+
+  try{
+    await refResponses.push({
+      name,
+      ratings: {...ratings},
+      comment,
+      ts: Date.now()
+    });
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('thanksView').style.display = 'block';
+  }catch(e){
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'Envoyer mon avis';
+    alert("Erreur d'envoi — vérifie ta connexion internet et réessaie.");
+  }
+};
+
+// ---------- Vue résultats (protégée par code) ----------
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('vue') === 'resultats'){
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('headerSub').textContent = 'Vue animateur — résultats en direct';
+  document.getElementById('pinGate').style.display = 'block';
+
+  document.getElementById('pinBtn').onclick = checkPin;
+  document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPin(); });
+
+  function checkPin(){
+    const val = document.getElementById('pinInput').value.trim();
+    if(val === ADMIN_PIN){
+      document.getElementById('pinGate').style.display = 'none';
+      document.getElementById('resultsView').style.display = 'block';
+      loadResults();
+    } else {
+      document.getElementById('pinError').textContent = 'Code incorrect.';
+    }
+  }
+
+  function loadResults(){
+    refResponses.on('value', snap=>{
+      const data = snap.val() || {};
+      const entries = Object.values(data).sort((a,b)=>b.ts-a.ts);
+      renderSummary(entries);
+      renderResponses(entries);
+    });
+  }
+
+  function renderSummary(entries){
+    const grid = document.getElementById('summaryGrid');
+    grid.innerHTML = '';
+    const totalCard = document.createElement('div');
+    totalCard.className = 'summary-card';
+    totalCard.innerHTML = `<div class="val">${entries.length}</div><div class="lbl">Réponses</div>`;
+    grid.appendChild(totalCard);
+
+    RATING_KEYS.forEach(key=>{
+      const vals = entries.map(e=>e.ratings && e.ratings[key]).filter(v=>v>0);
+      const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+      const card = document.createElement('div');
+      card.className = 'summary-card';
+      card.innerHTML = `<div class="val">${avg}</div><div class="lbl">${RATING_LABELS[key]}</div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function renderResponses(entries){
+    const box = document.getElementById('responsesList');
+    box.innerHTML = '';
+    if(entries.length === 0){
+      box.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucune réponse pour l\'instant.</div>';
+      return;
+    }
+    entries.forEach(e=>{
+      const card = document.createElement('div');
+      card.className = 'response-card';
+      const starsSummary = RATING_KEYS.map(k=>`${RATING_LABELS[k]} ${'★'.repeat(e.ratings?.[k]||0)}${'☆'.repeat(5-(e.ratings?.[k]||0))}`).join(' · ');
+      const date = e.ts ? new Date(e.ts).toLocaleString('fr-FR') : '';
+      card.innerHTML = `
+        <div class="rname">${escHtml(e.name || 'Anonyme')}</div>
+        <div class="rstars">${starsSummary}</div>
+        ${e.comment ? `<div class="rcomment">${escHtml(e.comment)}</div>` : ''}
+        <div class="rdate">${date}</div>
+      `;
+      box.appendChild(card);
+    });
+  }
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+}
+</script>
+</body>
+</html>
