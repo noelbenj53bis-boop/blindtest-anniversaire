@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Livre d'or — Jadou 18</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<style>
+  :root{
+    --bg:#0a0a08; --panel:#141712; --line:#2a2f22;
+    --neon:#ccff00; --gold:#e8c15a; --text:#eef2e6; --muted:#8a9080; --danger:#ff5a5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #1e2310 0%, var(--bg) 55%), var(--bg);
+    color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; padding:24px 16px 60px;
+  }
+  h1,h2{font-family:'Orbitron',sans-serif;margin:0;}
+  .wrap{max-width:600px;margin:0 auto;}
+  header{border-bottom:2px solid var(--gold);padding-bottom:14px;margin-bottom:26px;text-align:center;}
+  header .brand{font-size:clamp(24px,6vw,34px);letter-spacing:1px;color:var(--gold);text-shadow:0 0 18px rgba(232,193,90,0.35);}
+  header .sub{color:var(--muted);font-size:14px;margin-top:8px;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:26px 22px;margin-bottom:18px;}
+
+  label.field-label{display:block;font-size:13px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+  input[type=text]{
+    width:100%;background:#0e120c;border:1px solid var(--line);color:var(--text);
+    padding:13px 14px;border-radius:5px;font-family:'Rajdhani',sans-serif;font-size:17px;margin-bottom:20px;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--gold);}
+
+  textarea{
+    width:100%;min-height:150px;background:#0e120c;border:1px solid var(--line);color:var(--text);
+    padding:14px;border-radius:5px;font-family:'Rajdhani',sans-serif;font-size:16px;resize:vertical;
+    margin-bottom:16px;
+  }
+  textarea:focus{outline:none;border-color:var(--gold);}
+
+  .type-choice{display:flex;flex-direction:column;gap:12px;}
+  .type-btn{
+    display:flex;align-items:center;gap:14px;background:#0e120c;border:1.5px solid var(--line);
+    border-radius:8px;padding:18px 18px;cursor:pointer;transition:border-color .15s, transform .1s;
+    text-align:left;
+  }
+  .type-btn:hover{border-color:var(--gold);transform:translateY(-1px);}
+  .type-btn .icon{font-size:28px;}
+  .type-btn .lbl{font-size:17px;font-weight:700;}
+  .type-btn .desc{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+  button.action{
+    font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    border:none;border-radius:5px;padding:15px 20px;cursor:pointer;font-size:15px;width:100%;
+  }
+  .btn-gold{background:var(--gold);color:#241b04;}
+  .btn-gold:hover{background:#f5d27a;}
+  .btn-gold:disabled{background:#3a3020;color:var(--muted);cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--line);margin-top:10px;}
+  .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+  .btn-back{background:transparent;color:var(--muted);border:none;font-size:13px;margin-bottom:16px;cursor:pointer;padding:0;}
+  .btn-back:hover{color:var(--gold);}
+
+  .preview-box{background:#0e120c;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px;text-align:center;}
+  .preview-box video, .preview-box audio{width:100%;border-radius:5px;}
+  .duration-tag{font-size:13px;color:var(--muted);margin-top:10px;}
+  .duration-warn{color:var(--gold);font-weight:700;}
+
+  .btn-row{display:flex;gap:10px;}
+  .btn-row button{flex:1;}
+
+  .thanks{text-align:center;padding:50px 20px;}
+  .thanks .big-icon{font-size:52px;margin-bottom:16px;}
+  .thanks h2{color:var(--gold);text-shadow:0 0 16px rgba(232,193,90,0.4);margin-bottom:10px;}
+  .thanks p{color:var(--muted);font-size:15px;}
+
+  .uploading{text-align:center;padding:50px 20px;}
+  .uploading .spin{
+    width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--gold);
+    border-radius:50%;margin:0 auto 20px;animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .progress-bar{background:var(--line);border-radius:4px;height:6px;overflow:hidden;margin-top:16px;}
+  .progress-fill{height:100%;background:var(--gold);width:0%;transition:width .2s;}
+
+  .error-msg{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;}
+
+  /* Consultation (protégée) */
+  .pin-gate{max-width:340px;margin:80px auto;text-align:center;}
+  .pin-gate input{text-align:center;font-size:22px;letter-spacing:6px;}
+  .entry-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px;}
+  .entry-card .ename{color:var(--gold);font-weight:700;font-size:16px;margin-bottom:4px;}
+  .entry-card .edate{font-size:11px;color:var(--muted);margin-bottom:10px;}
+  .entry-card .etext{font-size:15px;line-height:1.5;white-space:pre-wrap;}
+  .entry-card video, .entry-card audio{width:100%;border-radius:5px;margin-top:6px;}
+  .count-badge{text-align:center;color:var(--muted);font-size:13px;margin-bottom:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">💌 LIVRE D'OR — JADOU 18</div>
+    <div class="sub" id="headerSub">Laisse un mot à Jad pour ses 18 ans (et son BAC !)</div>
+  </header>
+
+  <!-- ÉTAPE A : identité + choix du type -->
+  <div id="screenChoice" class="screen active">
+    <div class="panel">
+      <label class="field-label" for="nameInput">Ton prénom (ou "de la part de...")</label>
+      <input type="text" id="nameInput" placeholder="Ex: Tonton Marc & famille">
+
+      <label class="field-label">Comment veux-tu lui laisser un mot ?</label>
+      <div class="type-choice">
+        <div class="type-btn" id="chooseText">
+          <span class="icon">✏️</span>
+          <div><div class="lbl">Texte</div><div class="desc">Un petit mot écrit</div></div>
+        </div>
+        <div class="type-btn" id="chooseAudio">
+          <span class="icon">🎙️</span>
+          <div><div class="lbl">Message vocal</div><div class="desc">2 minutes max, via ton dictaphone</div></div>
+        </div>
+        <div class="type-btn" id="chooseVideo">
+          <span class="icon">🎥</span>
+          <div><div class="lbl">Petite vidéo</div><div class="desc">2 minutes max, via ta caméra</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE B1 : saisie texte -->
+  <div id="screenText" class="screen">
+    <button class="btn-back" id="backFromText">← Retour</button>
+    <div class="panel">
+      <label class="field-label" for="textInput">Ton message pour Jad</label>
+      <textarea id="textInput" placeholder="Écris ton mot ici..."></textarea>
+      <button class="action btn-gold" id="submitTextBtn">✔ Envoyer mon message</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE B2 : aperçu audio/vidéo avant envoi -->
+  <div id="screenPreview" class="screen">
+    <button class="btn-back" id="backFromPreview">← Retour</button>
+    <div class="panel">
+      <label class="field-label" id="previewLabel">Ton message</label>
+      <div class="preview-box" id="previewBox"></div>
+      <div class="duration-tag" id="durationTag"></div>
+      <label class="field-label" for="mediaTextInput" style="margin-top:16px;">Un petit mot à ajouter ? (facultatif)</label>
+      <textarea id="mediaTextInput" placeholder="Tu peux aussi écrire quelques mots en plus de ton message..." style="min-height:80px;"></textarea>
+      <div class="btn-row">
+        <button class="action btn-ghost" id="redoBtn">↻ Recommencer</button>
+        <button class="action btn-gold" id="validateMediaBtn">✔ Valider mon message</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE C : envoi en cours -->
+  <div id="screenUploading" class="screen">
+    <div class="panel uploading">
+      <div class="spin"></div>
+      <div>Envoi en cours...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE D : merci -->
+  <div id="screenThanks" class="screen">
+    <div class="thanks">
+      <div class="big-icon">💚</div>
+      <h2>Merci !</h2>
+      <p>Ton message est bien enregistré. Jad le découvrira très bientôt.</p>
+    </div>
+  </div>
+
+  <!-- CONSULTATION (protégée) -->
+  <div id="pinGate" class="pin-gate" style="display:none;">
+    <div class="panel">
+      <label class="field-label" for="pinInput">Code d'accès</label>
+      <input type="text" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="4">
+      <button class="action btn-gold" id="pinBtn" style="margin-top:14px;">Voir le livre d'or</button>
+      <div id="pinError" class="error-msg"></div>
+    </div>
+  </div>
+
+  <div id="consultView" style="display:none;">
+    <div class="count-badge" id="countBadge"></div>
+    <div id="entriesList"></div>
+  </div>
+
+</div>
+
+<script>
+// ---------- Firebase (branche dédiée "livredorJadou18") ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyBDjMGInt3PNL7SNlfFG_-cjahJW66_i1A",
+  authDomain: "blindtest-anniversaire.firebaseapp.com",
+  databaseURL: "https://blindtest-anniversaire-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "blindtest-anniversaire",
+  storageBucket: "blindtest-anniversaire.firebasestorage.app",
+  messagingSenderId: "164642303775",
+  appId: "1:164642303775:web:ba51b309d28675fb8f8a2a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const storage = firebase.storage();
+const ROOT = "livredorJadou18";
+const refEntries = db.ref(`${ROOT}/entries`);
+const storageRoot = storage.ref(ROOT);
+
+// ⚠️ Code d'accès à la consultation — à changer ici si tu veux, seule ligne à modifier.
+const ADMIN_PIN = "1234";
+
+const MAX_DURATION = 120; // 2 minutes
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---------- État courant ----------
+let currentType = null;   // 'audio' | 'video'
+let currentFile = null;
+let currentDuration = 0;
+
+// ---------- Écran A : choix ----------
+document.getElementById('chooseText').onclick = ()=>{
+  showScreen('screenText');
+};
+document.getElementById('chooseAudio').onclick = ()=>{
+  document.getElementById('mediaTextInput').value = '';
+  triggerCapture('audio');
+};
+document.getElementById('chooseVideo').onclick = ()=>{
+  document.getElementById('mediaTextInput').value = '';
+  triggerCapture('video');
+};
+
+document.getElementById('backFromText').onclick = ()=> showScreen('screenChoice');
+document.getElementById('backFromPreview').onclick = ()=> showScreen('screenChoice');
+
+// ---------- Déclenchement caméra / dictaphone natif ----------
+let fileInput = null;
+function triggerCapture(type){
+  currentType = type;
+  if(fileInput) fileInput.remove();
+  fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = type === 'audio' ? 'audio/*' : 'video/*';
+  fileInput.capture = type === 'audio' ? 'microphone' : 'environment';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', onCaptureChange);
+  fileInput.click();
+}
+
+function onCaptureChange(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  currentFile = file;
+  showMediaPreview(file);
+}
+
+function showMediaPreview(file){
+  const box = document.getElementById('previewBox');
+  box.innerHTML = '';
+  const url = URL.createObjectURL(file);
+  const el = document.createElement(currentType === 'audio' ? 'audio' : 'video');
+  el.src = url;
+  el.controls = true;
+  box.appendChild(el);
+
+  document.getElementById('previewLabel').textContent =
+    currentType === 'audio' ? 'Ton message vocal' : 'Ta petite vidéo';
+
+  el.addEventListener('loadedmetadata', ()=>{
+    currentDuration = el.duration || 0;
+    const tag = document.getElementById('durationTag');
+    const mm = Math.floor(currentDuration/60);
+    const ss = Math.round(currentDuration%60).toString().padStart(2,'0');
+    if(currentDuration > MAX_DURATION){
+      tag.innerHTML = `<span class="duration-warn">⏱️ ${mm}:${ss} — Jad risque de s'endormir avant la fin ! Tu peux quand même l'envoyer, ou recommencer plus court.</span>`;
+    } else {
+      tag.textContent = `⏱️ Durée : ${mm}:${ss}`;
+    }
+  });
+
+  document.getElementById('validateMediaBtn').disabled = false;
+  showScreen('screenPreview');
+}
+
+document.getElementById('redoBtn').onclick = ()=>{
+  currentFile = null;
+  triggerCapture(currentType);
+};
+
+// ---------- Envoi : texte ----------
+document.getElementById('submitTextBtn').onclick = async ()=>{
+  const name = document.getElementById('nameInput').value.trim() || 'Anonyme';
+  const message = document.getElementById('textInput').value.trim();
+  if(!message){ alert('Écris un petit mot avant d\'envoyer !'); return; }
+
+  showScreen('screenUploading');
+  document.getElementById('progressFill').style.width = '60%';
+  try{
+    await refEntries.push({
+      name, type:'texte', message, ts: Date.now()
+    });
+    document.getElementById('progressFill').style.width = '100%';
+    setTimeout(()=> showScreen('screenThanks'), 250);
+  }catch(e){
+    console.error(e);
+    showScreen('screenText');
+    alert("Erreur d'envoi — vérifie ta connexion internet et réessaie.");
+  }
+};
+
+// ---------- Envoi : audio / vidéo ----------
+document.getElementById('validateMediaBtn').onclick = async ()=>{
+  if(!currentFile) return;
+  const name = document.getElementById('nameInput').value.trim() || 'Anonyme';
+  showScreen('screenUploading');
+
+  const entryId = uid();
+  const ext = (currentFile.name.split('.').pop() || (currentType==='audio' ? 'm4a' : 'mp4')).toLowerCase();
+  const storagePath = `${entryId}.${ext}`;
+  const fileRef = storageRoot.child(storagePath);
+
+  try{
+    const uploadTask = fileRef.put(currentFile);
+    uploadTask.on('state_changed', snap=>{
+      const pct = snap.totalBytes ? Math.round((snap.bytesTransferred/snap.totalBytes)*100) : 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+    });
+    await uploadTask;
+    const downloadUrl = await fileRef.getDownloadURL();
+    const extraMessage = document.getElementById('mediaTextInput').value.trim();
+
+    await refEntries.push({
+      name, type: currentType, storagePath, url: downloadUrl,
+      message: extraMessage, duration: Math.round(currentDuration), ts: Date.now()
+    });
+    showScreen('screenThanks');
+  }catch(e){
+    console.error(e);
+    showScreen('screenPreview');
+    document.getElementById('durationTag').innerHTML =
+      '<span class="duration-warn">Erreur d\'envoi — vérifie ta connexion et réessaie.</span>';
+  }
+};
+
+// ---------- Vue consultation (protégée) ----------
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('vue') === 'consultation'){
+  document.getElementById('screenChoice').classList.remove('active');
+  document.getElementById('headerSub').textContent = 'Consultation — accès protégé';
+  document.getElementById('pinGate').style.display = 'block';
+
+  document.getElementById('pinBtn').onclick = checkPin;
+  document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPin(); });
+
+  function checkPin(){
+    const val = document.getElementById('pinInput').value.trim();
+    if(val === ADMIN_PIN){
+      document.getElementById('pinGate').style.display = 'none';
+      document.getElementById('consultView').style.display = 'block';
+      loadEntries();
+    } else {
+      document.getElementById('pinError').textContent = 'Code incorrect.';
+    }
+  }
+
+  function loadEntries(){
+    refEntries.on('value', snap=>{
+      const data = snap.val() || {};
+      const entries = Object.values(data).sort((a,b)=>b.ts-a.ts);
+      renderEntries(entries);
+    });
+  }
+
+  function renderEntries(entries){
+    document.getElementById('countBadge').textContent =
+      entries.length + ' message' + (entries.length>1?'s':'') + ' reçu' + (entries.length>1?'s':'');
+    const box = document.getElementById('entriesList');
+    box.innerHTML = '';
+    if(entries.length === 0){
+      box.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">Aucun message pour l\'instant.</div>';
+      return;
+    }
+    entries.forEach(e=>{
+      const card = document.createElement('div');
+      card.className = 'entry-card';
+      const date = e.ts ? new Date(e.ts).toLocaleString('fr-FR') : '';
+      let mediaHtml = '';
+      if(e.type === 'texte'){
+        mediaHtml = `<div class="etext">${escHtml(e.message||'')}</div>`;
+      } else if(e.type === 'audio'){
+        mediaHtml = `<audio controls src="${e.url}"></audio>`;
+        if(e.message) mediaHtml += `<div class="etext" style="margin-top:10px;">${escHtml(e.message)}</div>`;
+      } else if(e.type === 'video'){
+        mediaHtml = `<video controls src="${e.url}"></video>`;
+        if(e.message) mediaHtml += `<div class="etext" style="margin-top:10px;">${escHtml(e.message)}</div>`;
+      }
+      card.innerHTML = `
+        <div class="ename">${escHtml(e.name || 'Anonyme')}</div>
+        <div class="edate">${date}</div>
+        ${mediaHtml}
+      `;
+      box.appendChild(card);
+    });
+  }
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+}
+</script>
+</body>
+</html>
